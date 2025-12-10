@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Literal
 from fastapi import APIRouter, HTTPException, Query
-from backend.core.monthly_map_logic import (
+from core.monthly_map_logic import (
     get_monthly_map_rows,
     get_available_year_months,
 )

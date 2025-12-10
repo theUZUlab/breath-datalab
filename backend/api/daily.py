@@ -1,7 +1,7 @@
 from __future__ import annotations
 from fastapi import APIRouter, HTTPException, Query
-from backend.core.daily_risk_logic import build_daily_risk_rows_for_api
-from backend.core.env_client import validate_date_format
+from core.daily_risk_logic import build_daily_risk_rows_for_api
+from core.env_client import validate_date_format
 
 router = APIRouter(
     prefix="/api",

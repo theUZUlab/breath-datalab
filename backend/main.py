@@ -1,9 +1,9 @@
 from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.core.config import debug_print_paths, ensure_data_paths
-from backend.api.monthly import router as monthly_router
-from backend.api.daily import router as daily_router
+from core.config import debug_print_paths, ensure_data_paths
+from api.monthly import router as monthly_router
+from api.daily import router as daily_router
 
 
 # ─────────────────────────────────────

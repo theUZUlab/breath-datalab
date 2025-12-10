@@ -1,15 +1,15 @@
 from __future__ import annotations
 from typing import List, Dict, Any, Optional
 import pandas as pd
-from backend.core.config import (
+from core.config import (
     MERGED_MONTHLY_PATH,
     MONTHLY_PREDICT_VS_ACTUAL_PATH,
 )
-from backend.modeling.daily_risk_index.monthly_tree_and_daily_risk import (
+from modeling.daily_risk_index.monthly_tree_and_daily_risk import (
     load_monthly_predictions,
     get_daily_risk,
 )
-from backend.core.external_env_api import build_airkorea_env_obs_for_all_sido
+from core.external_env_api import build_airkorea_env_obs_for_all_sido
 
 
 # ─────────────────────────────────────

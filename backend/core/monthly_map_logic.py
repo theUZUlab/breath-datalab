@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Literal, List, Dict, Any, Optional
 import pandas as pd
-from backend.core.config import MONTHLY_PREDICT_VS_ACTUAL_PATH
+from core.config import MONTHLY_PREDICT_VS_ACTUAL_PATH
 
 
 # ─────────────────────────────────────
