@@ -1,16 +1,15 @@
 from __future__ import annotations
 from typing import List, Dict, Any, Optional
 import pandas as pd
-from backend.core.config import (
+from core.config import (
     MERGED_MONTHLY_PATH,
     MONTHLY_PREDICT_VS_ACTUAL_PATH,
 )
-from backend.modeling.daily_risk_index.monthly_tree_and_daily_risk import (
+from modeling.daily_risk_index.monthly_tree_and_daily_risk import (
     load_monthly_predictions,
     get_daily_risk,
 )
-from backend.core.external_env_api import build_airkorea_env_obs_for_all_sido
-
+from core.external_env_api import build_airkorea_env_obs_for_all_sido
 
 # ─────────────────────────────────────
 # 1) 전역 캐시: 월 예측값, 기준 환경값(ref_df)
@@ -123,8 +122,9 @@ def compute_daily_risk_df(
         - 기본 스키마 예시: ['sido_name', 'pm25', 'pm10', 't', 'rh']
         - None 인 경우, 함수 내부에서 에어코리아 실시간 API를 호출하여
           전 시도에 대한 pm25/pm10 평균 값을 조회한 뒤 사용한다.
-        - 추후 기상청 ASOS 등을 합쳐서 t, rh 까지 포함한 env_obs_df를
-          외부에서 구성해 넘길 수도 있다.
+        - AirKorea 레이트 리밋(429) 등으로 인해 env_obs_df 를 얻지 못한 경우,
+          env_obs_df=None 으로 get_daily_risk 를 호출하여 기준 ref_df 만 사용하는
+          모드로 계산을 진행한다.
 
     Returns
     -------
@@ -141,11 +141,18 @@ def compute_daily_risk_df(
     # env_obs_df 가 주어지지 않으면 에어코리아 실시간 값으로 자동 조회
     if env_obs_df is None:
         env_obs_df = build_airkorea_env_obs_for_all_sido()
+        # AirKorea 레이트 리밋(429) 등으로 인해 None 이 반환될 수 있다.
+        if env_obs_df is None:
+            # 실시간 환경 데이터 없이, ref_df + 월 예측값만으로 위험지수 계산
+            print(
+                "[INFO] env_obs_df 없음 → 실시간 대기질 없이 기준값(ref_df)만 사용하여 "
+                "일일 위험지수 계산을 진행합니다."
+            )
 
     df = get_daily_risk(
         date_str=date_str,
         monthly_preds_df=monthly_preds_df,
-        env_obs_df=env_obs_df,
+        env_obs_df=env_obs_df,  # None 일 수도 있음 (모델이 이를 허용하도록 설계되어 있음)
         ref_df=ref_df,
         # percentile_clip 기본값 (10, 90) 그대로 사용
     )
