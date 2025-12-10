@@ -1,8 +1,9 @@
 import os
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from urllib.parse import unquote
 import requests
+from requests import HTTPError
 import pandas as pd
 from dotenv import load_dotenv
 
@@ -88,7 +89,7 @@ def fetch_airkorea_by_sido(sido_name: str) -> pd.DataFrame:
     return df
 
 
-def build_airkorea_env_obs_for_all_sido() -> pd.DataFrame:
+def build_airkorea_env_obs_for_all_sido() -> Optional[pd.DataFrame]:
     """
     전 시도에 대해 에어코리아 실시간 값을 조회해서
     get_daily_risk 의 env_obs_df 로 바로 쓸 수 있는 형태로 만든다.
@@ -97,13 +98,27 @@ def build_airkorea_env_obs_for_all_sido() -> pd.DataFrame:
     - sido_name
     - pm25
     - pm10
+
+    모든 시도에서 데이터를 가져오지 못한 경우(None)를 반환하여
+    상위 로직이 '환경데이터 없이' 계산하도록 한다.
     """
     rows = []
 
     for sido in KOREAN_SIDO_LIST:
-        df = fetch_airkorea_by_sido(sido)
+        try:
+            df = fetch_airkorea_by_sido(sido)
+        except HTTPError as e:
+            # 레이트 리밋(429) 등 HTTP 에러 처리
+            if e.response is not None and e.response.status_code == 429:
+                print(
+                    f"[WARN] AirKorea API 429 Too Many Requests (sido={sido}), skip this region"
+                )
+                continue
+            # 그 외 HTTP 에러는 그대로 올린다
+            raise
+
         if df.empty:
-            # 이 시도에 데이터가 없으면 그냥 스킵
+            # 이 시도에 데이터가 없으면 스킵
             continue
 
         row = {
@@ -112,6 +127,13 @@ def build_airkorea_env_obs_for_all_sido() -> pd.DataFrame:
             "pm25": df["pm25Value"].mean(skipna=True),
         }
         rows.append(row)
+
+    if not rows:
+        # 전 시도 모두 실패/빈 경우 → 상위에서 fallback 처리할 수 있도록 None 반환
+        print(
+            "[WARN] AirKorea API 결과가 모두 비어 있습니다. env_obs_df 없이 위험지수 계산을 진행합니다."
+        )
+        return None
 
     env_df = pd.DataFrame(rows)
     return env_df
