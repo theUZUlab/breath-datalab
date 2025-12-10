@@ -10,7 +10,7 @@ from pathlib import Path
 #   parents[2] → PROJECT_ROOT
 PROJECT_ROOT: Path = Path(__file__).resolve().parents[2]
 BACKEND_DIR: Path = PROJECT_ROOT / "backend"
-DATA_DIR: Path = PROJECT_ROOT / "data"
+DATA_DIR: Path = BACKEND_DIR / "data"
 
 # 세부 데이터 디렉터리
 MART_DIR: Path = DATA_DIR / "mart"
